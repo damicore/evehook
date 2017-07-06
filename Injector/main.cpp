@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Windows.h>
+#include <direct.h>
 
 using namespace std;
 
@@ -10,14 +11,13 @@ int main() {
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 
-	wchar_t* exePath = L"C:\\Users\\damian\\Saved\ Games\\eve98";
-	wchar_t* exeName = L"C:\\Users\\damian\\Saved\ Games\\eve98\\EVE98.exe";
-	CreateProcessW(exeName, NULL, NULL, NULL, FALSE, NULL, NULL, exePath, &si, &pi);
+	wchar_t* exeName = L"EVE98.exe"; 
+	CreateProcessW(L"EVE98.exe", NULL, NULL, NULL, FALSE, NULL, NULL, NULL, &si, &pi);
 	HANDLE processHandle = pi.hProcess;
 
 	//Write the dll name to the game's memory
 	wchar_t* dllName = 
-		L"C:\\Users\\damian\\Documents\\Visual\ Studio\ 2017\\Projects\\Injector\\Debug\\EveHook.dll";
+		L"EveHook.dll";
 	int namelen = wcslen(dllName);
 	LPVOID remoteString =
 		VirtualAllocEx(processHandle, NULL, namelen * 2, MEM_COMMIT, PAGE_EXECUTE);

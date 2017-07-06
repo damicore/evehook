@@ -13,8 +13,8 @@ DWORD __fastcall printDialogueLine(MsgStruct *thisPtr, DWORD trash, DWORD ptr_0,
 
 DWORD hookStringCopy(DWORD newFunc);
 
-bool findWavName(const MsgStruct *msgLine, std::string& wavToPlay);
+bool findWavNameAndDrop(MsgStruct *msgLine, std::string& wavToPlay);
 
 std::wstring string_to_wstring(const std::string& str);
 
-void pollForStopSound();
+//void pollForStopSound();

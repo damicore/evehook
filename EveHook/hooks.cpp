@@ -16,13 +16,15 @@ DWORD __fastcall printDialogueLine(MsgStruct *thisPtr, DWORD trash, DWORD ptr_0,
 {
 	//DWORD global_program_base;//calculate base again
 	std::string wavToPlay;
-	bool thereIsWav = findWavName(thisPtr, wavToPlay);
+	bool thereIsWav = findWavNameAndDrop(thisPtr, wavToPlay);
 	wavToPlay += ".wav";
 	std::wstring wwavToPlay = string_to_wstring(wavToPlay);
 	if (thereIsWav) {
 		PlaySound(wwavToPlay.c_str(), NULL, SND_ASYNC);
-		::g_isSoundPlaying = TRUE;
-		pollForStopSound();
+		size_8 = size_8 - (wavToPlay.size() - 5);
+	}
+	else {
+		PlaySound(NULL, NULL, SND_ASYNC);
 	}
 	
 	signed int hookAt = 0x400000 + 0x5BB7; //global_program_base
@@ -46,30 +48,42 @@ DWORD hookStringCopy(DWORD newFunc)
 	return originalOffset + hookAt + 5;
 }
 
-bool findWavName(const MsgStruct *msgStruct, std::string& wavNameRet)
+//Find the wavName, crop it from the name and return a bool. Populate wavNameRet with the wav name minus ".wav"
+bool findWavNameAndDrop(MsgStruct *msgStruct, std::string& wavNameRet)
 {
+	std::cout << "--------------------" << std::endl;
+	std::cout << msgStruct->getSize() << std::endl;
+	std::cout << msgStruct->getString() << std::endl;
+	std::cout << "--------------------" << std::endl;
 	bool found = FALSE;
 	std::string msgString = msgStruct->getString();
 	const size_t wavNamePos = msgString.find('#');
 	if (wavNamePos != std::string::npos) {
 		wavNameRet = msgString.substr(wavNamePos + 1, msgStruct->getSize() - 2 - wavNamePos); //-2 to crop the quoting marks
+		msgString.erase(wavNamePos, wavNameRet.size() + 1);
+		//msgString.append("\"");
+		msgStruct->setStr(msgString);
 		found = TRUE;
 	}
+	std::cout << msgStruct->getSize()<< std::endl;
+	std::cout << msgStruct->getString() << std::endl;
+	std::cout << wavNameRet << std::endl;
+	std::cout << "--------------------" << std::endl;
 	return found;
 }
 
 std::wstring string_to_wstring(const std::string& str) {
 	return std::wstring(str.begin(), str.end());
 }
-
+/*
 void pollForStopSound() { //this isn't working
 	while (::g_isSoundPlaying) {
 		short state = GetAsyncKeyState(VK_LBUTTON);
 		std::cout << state << std::endl;
-		if (!state) {
+		if (state) {
 			::g_isSoundPlaying = FALSE;
-			Sleep(1);
+			Sleep(500);
 			PlaySound(NULL, NULL, SND_ASYNC);
 		}
 	}
-}
+}*/
