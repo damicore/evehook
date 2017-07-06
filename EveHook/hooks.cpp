@@ -1,37 +1,37 @@
-#include "hooks.h"
 #include "stdafx.h"
 #include <iostream>
+#include <string>
+#include <windows.h>
+#include <mmsystem.h>
 #include "memory.h"
+#include "hooks.h"
+#include "MsgStruct.h"
 
 extern DWORD global_program_base;
 
-DWORD _stdcall printDialogueLine(DWORD arg_0, DWORD arg_4, DWORD arg_8)
+bool g_isSoundPlaying = FALSE;
+
+//fastcall because the function to hook seems to be a thiscall function, thus the second trash parameter (the value of EBX) must be dropped
+DWORD __fastcall printDialogueLine(MsgStruct *thisPtr, DWORD trash, DWORD ptr_0, DWORD arg_4, DWORD size_8)
 {
-	DWORD global_program_base;//calcular la base de vuelta
-	std::cout << "arg_0: 0x" << std::hex << arg_0 
-			<< " arg_4: 0x" << std::hex << arg_4
-			<< " arg_8: 0x" << std::hex << arg_8 << std::endl;
+	//DWORD global_program_base;//calculate base again
+	std::string wavToPlay;
+	bool thereIsWav = findWavName(thisPtr, wavToPlay);
+	wavToPlay += ".wav";
+	std::wstring wwavToPlay = string_to_wstring(wavToPlay);
+	if (thereIsWav) {
+		PlaySound(wwavToPlay.c_str(), NULL, SND_ASYNC);
+		::g_isSoundPlaying = TRUE;
+		pollForStopSound();
+	}
 	
-	signed int hookAt = global_program_base + 0x5BB7;
+	signed int hookAt = 0x400000 + 0x5BB7; //global_program_base
 	signed int oldFuncAddr = hookAt + 5 + (signed int)0xFFFFFA14;
 
-	std::cout << "oldFuncAddr = " << oldFuncAddr;
-	
-	DWORD retVal;
-	//call the original function
-	__asm {
-		MOV EDX, arg_8
-		PUSH EDX
-		MOV EDX, arg_4
-		PUSH EDX
-		MOV EDX, arg_0
-		PUSH EDX
-		MOV EBX, [oldFuncAddr]
-		CALL EBX
-		MOV [retVal], EAX
-	}
+	DWORD(__thiscall *oldFunc)(void*, DWORD, DWORD, DWORD) = 
+		(DWORD(__thiscall *)(void*, DWORD, DWORD, DWORD))oldFuncAddr;
 
-	return retVal;
+	return oldFunc(thisPtr, ptr_0, arg_4, size_8);
 }
 
 DWORD hookStringCopy(DWORD newFunc)
@@ -40,9 +40,36 @@ DWORD hookStringCopy(DWORD newFunc)
 	DWORD newOffset = newFunc - hookAt - 5;
 	DWORD oldProtection =
 		protectMemory<DWORD>((LPVOID)(hookAt + 1), PAGE_EXECUTE_READWRITE);
-	std::cout << "oldProt = " << std::hex << oldProtection << std::endl;
 	DWORD originalOffset = readMemory<DWORD>((LPVOID)(hookAt + 1));
 	writeMemory<DWORD>((LPVOID)(hookAt + 1), newOffset);
 	protectMemory<DWORD>((LPVOID)(hookAt + 1), oldProtection);
 	return originalOffset + hookAt + 5;
+}
+
+bool findWavName(const MsgStruct *msgStruct, std::string& wavNameRet)
+{
+	bool found = FALSE;
+	std::string msgString = msgStruct->getString();
+	const size_t wavNamePos = msgString.find('#');
+	if (wavNamePos != std::string::npos) {
+		wavNameRet = msgString.substr(wavNamePos + 1, msgStruct->getSize() - 2 - wavNamePos); //-2 to crop the quoting marks
+		found = TRUE;
+	}
+	return found;
+}
+
+std::wstring string_to_wstring(const std::string& str) {
+	return std::wstring(str.begin(), str.end());
+}
+
+void pollForStopSound() { //this isn't working
+	while (::g_isSoundPlaying) {
+		short state = GetAsyncKeyState(VK_LBUTTON);
+		std::cout << state << std::endl;
+		if (!state) {
+			::g_isSoundPlaying = FALSE;
+			Sleep(1);
+			PlaySound(NULL, NULL, SND_ASYNC);
+		}
+	}
 }

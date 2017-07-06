@@ -3,7 +3,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include <stdio.h>
-
+#include <direct.h>
 #include "memory.h"
 #include "hooks.h"
 
@@ -15,6 +15,9 @@ DWORD WINAPI myMainThread(LPVOID lpParam) {
 	DWORD global_program_base = 0x400000;//why doesn't this work?, try with FS:0 : (DWORD)GetModuleHandle(NULL)
 	std::wcout << "Attached. Base is at 0x" << std::hex << global_program_base << std::endl;
 	hookStringCopy((DWORD)&printDialogueLine);
+	char *path =_getcwd(NULL, 0);
+	std::cout << path << std::endl;
+
 	return 1;
 }
 
