@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EveHook.h" />
+    <ClInclude Include="FileStruct.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="MsgStruct.h" />
@@ -162,6 +163,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="EveHook.cpp" />
+    <ClCompile Include="FileStruct.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="MsgStruct.cpp" />
     <ClCompile Include="stdafx.cpp">

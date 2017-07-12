@@ -12,9 +12,10 @@ DWORD WINAPI myMainThread(LPVOID lpParam) {
 	AllocConsole();
 	//Windows Magic for the stdout to be redirected to the new one:
 	freopen("CONOUT$", "w", stdout);
+	//hookStringCopy((DWORD)&printDialogueLine);
 	DWORD global_program_base = 0x400000;//why doesn't this work?, try with FS:0 : (DWORD)GetModuleHandle(NULL)
-	std::wcout << "Attached. Base is at 0x" << std::hex << global_program_base << std::endl;
-	hookStringCopy((DWORD)&printDialogueLine);
+	DWORD hookAt = (global_program_base + 0x9526);//global_program_base
+	hook((DWORD)&printDialogueLine, hookAt);
 	char *path =_getcwd(NULL, 0);
 	std::cout << path << std::endl;
 

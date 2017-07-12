@@ -36,6 +36,9 @@
     <ClInclude Include="hooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FileStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -51,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MsgStruct.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileStruct.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
